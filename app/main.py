@@ -8,6 +8,7 @@ from fastapi import (
     Depends,
     FastAPI,
     File,
+    Header,
     HTTPException,
     Request,
     UploadFile,
@@ -33,8 +34,22 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 #     return templates.TemplateResponse("home.html", {"request": request, "abc": 123})
 
 
+def verify_auth(settings: Settings, authorization=Header(None)):
+    if settings.debug and settings.skip_auth:
+        return
+
+    if authorization is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No authorization credentials")
+
+    label, token = authorization.split()  # {"authorization": "Bearer <token>"}
+    if token != settings.app_auth_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+
 @app.post("/")
-async def prediction(file: UploadFile = File(...)):
+async def prediction(file: UploadFile = File(...), authorization=Header(None), settings: Settings = Depends(get_settings)):
+    verify_auth(settings, authorization)
+
     bytes_str = io.BytesIO(await file.read())
 
     try:

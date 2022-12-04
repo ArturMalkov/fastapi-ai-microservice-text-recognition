@@ -2,11 +2,11 @@ import io
 import shutil
 import time
 
-import pytesseract
 from fastapi.testclient import TestClient
 from PIL import Image, ImageChops
 
 from app.main import app, BASE_DIR, UPLOAD_DIR
+from config import get_settings
 
 
 client = TestClient(app)
@@ -27,6 +27,7 @@ def test_invalid_file_upload_error():
 
 
 def test_prediction():
+    settings = get_settings()
     saved_images_path = BASE_DIR / "images"
     for file_path in saved_images_path.glob("*"):  # "*" means every file that's in there - as opposed to "*.png", "*.txt", etc.
         try:
@@ -34,7 +35,10 @@ def test_prediction():
         except:
             image = None
 
-        response = client.post("/", files={"file": open(file_path, "rb")})
+        response = client.post("/",
+                               files={"file": open(file_path, "rb")},
+                               headers={"Authorization": f"JWT {settings.app_auth_token}"}
+                               )
         # file_extension = str(image.suffix).replace(".", "")  # 'png' instead of '.png' - not a reliable way btw
         # assert file_extension in response.headers["Content-Type"]
         if image is None:
@@ -44,6 +48,20 @@ def test_prediction():
             assert response.status_code == 200
             data = response.json()
             assert len(data.keys()) == 2
+
+
+def test_prediction_missing_headers():
+    saved_images_path = BASE_DIR / "images"
+    for file_path in saved_images_path.glob("*"):
+        try:
+            image = Image.open(file_path)
+        except:
+            image = None
+
+        response = client.post("/",
+                               files={"file": open(file_path, "rb")},
+                               )
+        assert response.status_code == 401
 
 
 def test_echo_upload():
