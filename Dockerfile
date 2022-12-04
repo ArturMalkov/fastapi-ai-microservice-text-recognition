@@ -1,4 +1,5 @@
 FROM python:3.10-slim
+#FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
 
 COPY ./requirements.txt /requirements.txt
 RUN apt-get update && \
