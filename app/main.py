@@ -47,7 +47,7 @@ def verify_auth(settings: Settings, authorization=Header(None)):
 
 
 @app.post("/")
-async def prediction(file: UploadFile = File(...), authorization=Header(None), settings: Settings = Depends(get_settings)):
+async def extract_text_from_image(file: UploadFile = File(...), authorization=Header(None), settings: Settings = Depends(get_settings)):
     verify_auth(settings, authorization)
 
     bytes_str = io.BytesIO(await file.read())

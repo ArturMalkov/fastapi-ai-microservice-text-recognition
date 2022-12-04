@@ -26,7 +26,7 @@ def test_invalid_file_upload_error():
     # assert response.text != "..."
 
 
-def test_prediction():
+def test_extract_text_from_image_correct():
     settings = get_settings()
     saved_images_path = BASE_DIR / "images"
     for file_path in saved_images_path.glob("*"):  # "*" means every file that's in there - as opposed to "*.png", "*.txt", etc.
@@ -50,7 +50,7 @@ def test_prediction():
             assert len(data.keys()) == 2
 
 
-def test_prediction_missing_headers():
+def test_extract_text_from_image_missing_headers():
     saved_images_path = BASE_DIR / "images"
     for file_path in saved_images_path.glob("*"):
         try:
